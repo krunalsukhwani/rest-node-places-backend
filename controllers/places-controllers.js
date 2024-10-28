@@ -3,7 +3,7 @@ const { validationResult } = require("express-validator");
 const Place = require("../models/place");
 
 const getPlaceById = async (req, res, next) => {
-    //get place id from the routes
+    //get place id from the routes (query parameter)
     const placeId = req.params.pid;
 
     //get place information from the MongoDB
@@ -54,5 +54,33 @@ const createPlace = async (req, res, next) => {
     res.status(201).json({place: newPlace.toObject({ getters : true })});
 };
 
+const deletePlace = async (req, res, next) => {
+    //get place id from the query parameter
+    const placeId = req.params.pid;
+
+    //Check place exist with the provided id or not
+    let placeInfo;
+    try{
+        placeInfo = await Place.findById(placeId);
+    }catch(err){
+        return next(new HttpError("Something went wrong, could not find the place to delete.", 500));
+    }
+
+    //Display the error message if place doesn't exist
+    if(!placeInfo){
+        return next(new HttpError("Could not find the place for the provided place id.", 404));
+    }
+
+    //if place is available then delete the place
+    try{
+        await placeInfo.deleteOne();
+    }catch(err){
+        return next(new HttpError("Something went wrong, could not delete the place.", 500));
+    }
+
+    res.status(200).json({ message: "Deleted a place successfully!!"});
+}
+
 exports.getPlaceById = getPlaceById;
 exports.createPlace = createPlace;
+exports.deletePlace = deletePlace;
