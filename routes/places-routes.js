@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.get("/:pid", placesControllers.getPlaceById);
 
+router.get("/user/:creator", placesControllers.getPlacesByCreator);
+
 router.post("/"
         ,[
             check("title").notEmpty(),

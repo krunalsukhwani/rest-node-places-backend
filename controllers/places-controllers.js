@@ -128,7 +128,29 @@ const updatePlace = async (req, res, next) => {
 
 }
 
+const getPlacesByCreator = async (req, res, next) => {
+    //get creator from query parameter
+    const creatorName = req.params.creator;
+
+    //get the places from the MongoDB
+    let places;
+    try{
+        places = await Place.find({ creator : creatorName});
+    }catch(err){
+        return next(new HttpError("Something went wrong, could not find the places.", 500));
+    }
+
+    //Display the error message if places are not available for the given creator name
+    if(!places || places.length === 0){
+        return next(new HttpError("Could not find the places for the provided creator!", 400));
+    }
+
+    //return response to the Front End (UI)
+    res.json({places : places.map(place => place.toObject({ getters : true}))});
+}
+
 exports.getPlaceById = getPlaceById;
 exports.createPlace = createPlace;
 exports.deletePlace = deletePlace;
 exports.updatePlace = updatePlace;
+exports.getPlacesByCreator = getPlacesByCreator;
