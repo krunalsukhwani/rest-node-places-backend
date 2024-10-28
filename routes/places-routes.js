@@ -17,4 +17,12 @@ router.post("/"
 
 router.delete("/:pid", placesControllers.deletePlace);
 
+router.patch("/:pid"
+        ,[
+            check("title").notEmpty(),
+            check("address").notEmpty(),
+            check("description").isLength({min:5})
+        ],
+        placesControllers.updatePlace);
+
 module.exports = router;

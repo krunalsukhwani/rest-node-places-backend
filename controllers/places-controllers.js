@@ -1,6 +1,7 @@
 const HttpError = require("../models/http-error");
 const { validationResult } = require("express-validator");
 const Place = require("../models/place");
+const place = require("../models/place");
 
 const getPlaceById = async (req, res, next) => {
     //get place id from the routes (query parameter)
@@ -81,6 +82,53 @@ const deletePlace = async (req, res, next) => {
     res.status(200).json({ message: "Deleted a place successfully!!"});
 }
 
+const updatePlace = async (req, res, next) => {
+    //checking the validations
+    const errors = validationResult(req);
+
+    //if data is not valid then display error message
+    if(!errors.isEmpty()){
+        console.log(errors);
+        return next(new HttpError("Invalid Input, Please enter correct data!", 400));
+    }
+
+    //retrieving information from the request body
+    const { title , description, address } = req.body;
+
+    //retriving place id from the routes(query parameter)
+    const placeId = req.params.pid;
+
+    //check place exists for the provided place id or not
+    let placeInfo;
+    try{
+        placeInfo = await Place.findById(placeId);
+    }catch(err){
+        return next(new HttpError("Something went wrong, could not update the place information", 500));
+    }
+
+    //Display the error message if place doesn't exist with the provided id
+    if(!placeInfo){
+        return next(new HttpError("Could not find the place for the provided id.", 404));
+    }
+
+    //update the place information
+    placeInfo.title = title;
+    placeInfo.description = description;
+    placeInfo.address = address;
+
+    //call database to update the place information into the MongoDB
+    try{
+        await placeInfo.save();
+    }catch(err){
+        return next(new HttpError("Something went wrong, could not update the place.", 500));
+    }
+
+    //return response to the FrontEnd : UI
+    res.status(200).json({place: placeInfo.toObject({ getters: true })});
+
+}
+
 exports.getPlaceById = getPlaceById;
 exports.createPlace = createPlace;
 exports.deletePlace = deletePlace;
+exports.updatePlace = updatePlace;
